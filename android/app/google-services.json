@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "612243160927",
+    "project_id": "who-is-it-31ad6",
+    "storage_bucket": "who-is-it-31ad6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:612243160927:android:6541c1887e9f78c21800ea",
+        "android_client_info": {
+          "package_name": "de.petersen.nico.whoisit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "612243160927-mroq1457236c60oapgru55r9t305hgif.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDmEL-udQKrnSbNJc-qPheZIIzBxhk3lc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "612243160927-mroq1457236c60oapgru55r9t305hgif.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "612243160927-0hm90476hj1rk8o0hlabm6kgel9q6e5i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "de.petersen.nico.whoisit"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
