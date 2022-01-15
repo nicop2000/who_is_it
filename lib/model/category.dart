@@ -5,7 +5,6 @@ part 'category.g.dart';
 
 @JsonSerializable()
 class Category {
-
   String name;
 
   Category({required this.name});
@@ -15,7 +14,9 @@ class Category {
 
   Map<String, dynamic> toJson() => _$CategoryToJson(this);
 
-  ListTile toWidget() {
-    return ListTile(title: Text(name));
+  Widget toWidget() {
+    return Text(name);
   }
+
+
 }

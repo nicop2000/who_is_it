@@ -9,6 +9,7 @@ part of 'picture.dart';
 Picture _$PictureFromJson(Map<String, dynamic> json) => Picture(
       filename: json['filename'] as String,
       category: Category.fromJson(json['category'] as Map<String, dynamic>),
+      name: json['name'] as String,
       attributes: (json['attributes'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -17,7 +18,8 @@ Picture _$PictureFromJson(Map<String, dynamic> json) => Picture(
 
 Map<String, dynamic> _$PictureToJson(Picture instance) => <String, dynamic>{
       'filename': instance.filename,
-      'category': instance.category,
+      'name': instance.name,
+      'category': instance.category.toJson(),
       'attributes': instance.attributes,
       'opacity': instance.opacity,
     };

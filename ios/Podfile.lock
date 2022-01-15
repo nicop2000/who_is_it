@@ -13,6 +13,9 @@ PODS:
     - FirebaseAnalytics (~> 8.7.0)
   - Firebase/CoreOnly (8.7.0):
     - FirebaseCore (= 8.7.0)
+  - Firebase/Database (8.7.0):
+    - Firebase/CoreOnly
+    - FirebaseDatabase (~> 8.7.0)
   - Firebase/Firestore (8.7.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 8.7.0)
@@ -29,6 +32,10 @@ PODS:
     - Flutter
   - firebase_core (1.11.0):
     - Firebase/CoreOnly (= 8.7.0)
+    - Flutter
+  - firebase_database (9.0.5):
+    - Firebase/Database (= 8.7.0)
+    - firebase_core
     - Flutter
   - firebase_storage (10.2.5):
     - Firebase/Storage (= 8.7.0)
@@ -66,6 +73,9 @@ PODS:
     - GoogleUtilities/Environment (~> 7.6)
     - GoogleUtilities/Logger (~> 7.6)
     - nanopb (~> 2.30908.0)
+  - FirebaseDatabase (8.7.0):
+    - FirebaseCore (~> 8.0)
+    - leveldb-library (~> 1.22)
   - FirebaseFirestore (8.7.0):
     - FirebaseFirestore/AutodetectLeveldb (= 8.7.0)
   - FirebaseFirestore/AutodetectLeveldb (8.7.0):
@@ -122,6 +132,7 @@ PODS:
   - GTMSessionFetcher/Core (1.7.0)
   - image_picker (0.0.1):
     - Flutter
+  - leveldb-library (1.22.1)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
@@ -134,6 +145,7 @@ DEPENDENCIES:
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_database (from `.symlinks/plugins/firebase_database/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - FirebaseFirestore (from `https://github.com/invertase/firestore-ios-sdk-frameworks.git`, tag `8.7.0`)
   - Flutter (from `Flutter`)
@@ -146,12 +158,14 @@ SPEC REPOS:
     - FirebaseAuth
     - FirebaseCore
     - FirebaseCoreDiagnostics
+    - FirebaseDatabase
     - FirebaseInstallations
     - FirebaseStorage
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
     - GTMSessionFetcher
+    - leveldb-library
     - nanopb
     - PromisesObjC
 
@@ -164,6 +178,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_database:
+    :path: ".symlinks/plugins/firebase_database/ios"
   firebase_storage:
     :path: ".symlinks/plugins/firebase_storage/ios"
   FirebaseFirestore:
@@ -185,11 +201,13 @@ SPEC CHECKSUMS:
   firebase_analytics: 70a316bedc3e3f9542f98736935afd5d0ef5c311
   firebase_auth: 5e73961f1b1f4f45914a1ceccc288628efcb6514
   firebase_core: a22201aa350583b772af2eb8f62e4e926ee7bfdb
+  firebase_database: 2d2bb0842f6803b801263142413c9d1b2442f0e0
   firebase_storage: 310a4b7a173e2d28e5793f0723e4a8879142fb5a
   FirebaseAnalytics: 52768800c2add1d84b751420cb4caaf8195f2c41
   FirebaseAuth: 2e7d029977648c67a5d51a263d4cbab76d34cf12
   FirebaseCore: f4804c1d3f4bbbefc88904d15653038f2c99ddf7
   FirebaseCoreDiagnostics: 5daa63f1c1409d981a2d5007daa100b36eac6a34
+  FirebaseDatabase: afc82291f9ed94ff949cec1b9505e8c3b944bc0f
   FirebaseFirestore: 0f0d98ab906dbf65c82d070dd1a0c53da48d74dd
   FirebaseInstallations: caa7c8e0d3e2345b8829d2fa9ca1b4dfbf2fcc85
   FirebaseStorage: 2e6e58fe31fb0061fdce3f156d0ebc964e9de6ba
@@ -199,6 +217,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 684ee790a24f73ebb2d1d966e9711c203f2a4237
   GTMSessionFetcher: 43748f93435c2aa068b1cbe39655aaf600652e91
   image_picker: 9aa50e1d8cdacdbed739e925b7eea16d014367e6
+  leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
 
