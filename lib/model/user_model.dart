@@ -38,7 +38,6 @@ class UserModel extends ChangeNotifier {
     userDataStream = FirebaseFirestore.instance.collection("users").doc(FirebaseAuth.instance.currentUser!.uid).snapshots().listen((event) {
       UserModel userModel =  UserModel.fromJson(event.data() as Map<String, dynamic>);
       setUserModel(userModel);
-      print(friends);
     });
   }
 
@@ -46,6 +45,10 @@ class UserModel extends ChangeNotifier {
     if(userDataStream != null) {
       userDataStream!.cancel();
     }
+    name = "";
+    requests.clear();
+    invites.clear();
+    friends.clear();
   }
 
 

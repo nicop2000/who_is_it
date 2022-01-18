@@ -14,15 +14,15 @@ class FriendsPage extends StatelessWidget {
     ];
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('TABS Friends'),
+        middle: Text('Freunde'),
       ),
       child: CupertinoTabScaffold(
           tabBar: CupertinoTabBar(
             items: const [
               //TODO: Icons
-              BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Search'),
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: 'Suchen'),
               BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.settings), label: 'Invites')
+                  icon: Icon(CupertinoIcons.arrow_down), label: 'Anfragen')
             ],
           ),
           tabBuilder: (BuildContext context, index) {

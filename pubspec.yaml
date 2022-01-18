@@ -45,6 +45,7 @@ dependencies:
   firebase_database: ^9.0.5
   email_validator: ^2.0.1
   provider: ^6.0.2
+  firebase_crashlytics: ^2.4.5
 
 dev_dependencies:
   flutter_test:

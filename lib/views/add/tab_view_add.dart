@@ -18,15 +18,15 @@ class _TabViewControllerState extends State<TabViewController> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('TABS'),
+        middle: Text('Daten zum Spiel hinzufügen'),
       ),
       child: CupertinoTabScaffold(
           tabBar: CupertinoTabBar(
             items: const [
               //TODO: Icons
-              BottomNavigationBarItem(icon: Icon(CupertinoIcons.home), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(CupertinoIcons.book), label: 'Neue Kategorie'),
               BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.settings), label: 'Settings')
+                  icon: Icon(CupertinoIcons.camera), label: 'Neues Bild')
             ],
           ),
           tabBuilder: (BuildContext context, index) {

@@ -1,7 +1,7 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,127 +23,214 @@ class _AddPictureState extends State<AddPicture> {
   File? image;
   final picker = ImagePicker();
   double size = 512;
-  TextEditingController filenameController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController attributesController = TextEditingController();
+  Set<String> attributes = {};
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Helper.getHeadline("Neues Bild hinzufügen"),
-            ),
-            CupertinoButton(
-                child: const Text("Bild auswählen"),
-                onPressed: () {
-                  showCupertinoDialog(
-                      context: context,
-                      builder: (BuildContext bc) {
-                        return CupertinoAlertDialog(
-                          title: const Text("Bild auswählen"),
-                          content: Column(
-                            children: const [
-                              Text(
-                                  "Aus welcher Quelle soll das Bild importiert werden?"),
-                            ],
-                          ),
-                          actions: <Widget>[
-                            CupertinoDialogAction(
-                              child: const Text("Bild aus Galerie auswählen"),
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                final newImg = await _imgFromGallery();
-                                if (newImg != null) {
-                                  setState(() {
-                                    image = File(newImg.path);
-                                  });
-                                }
-                              },
-                            ),
-                            CupertinoDialogAction(
-                              child: const Text("Bild von Kamera auswählen"),
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                final newImg = await _imgFromCamera();
-                                if (newImg != null) {
-                                  setState(() {
-                                    image = File(newImg.path);
-                                  });
-                                }
-                              },
-                            ),
-                          ],
-                        );
-                      });
-                }),
-            if (image != null)
-              Image.file(
-                image!,
-                height: 200,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Helper.getHeadline("Neues Bild hinzufügen"),
               ),
-            StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('global')
-                    .doc('categories')
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
-                        snapshot) {
-                  if (snapshot.hasData) {
-                    return Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        children: [
-                          CupertinoButton(
-
-                              child: const Text("Kategorie auswählen"),
-                              onPressed: () {
-                                showCupertinoModalPopup<void>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      List<dynamic> useData =
-                                          snapshot.data!.data()!['names'];
-
-                                      return _buildBottomPicker(
-                                          _buildCupertinoPicker(
-                                              mapToCategoryList(useData)));
+              CupertinoButton(
+                  child: const Text("Bild auswählen"),
+                  onPressed: () {
+                    showCupertinoDialog(
+                        context: context,
+                        builder: (BuildContext bc) {
+                          return CupertinoAlertDialog(
+                            title: const Text("Bild auswählen"),
+                            content: Column(
+                              children: const [
+                                Text(
+                                    "Aus welcher Quelle soll das Bild importiert werden?"),
+                              ],
+                            ),
+                            actions: <Widget>[
+                              CupertinoDialogAction(
+                                child: const Text("Bild aus Galerie auswählen"),
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  final newImg = await _imgFromGallery();
+                                  if (newImg != null) {
+                                    setState(() {
+                                      image = File(newImg.path);
                                     });
+                                  }
+                                },
+                              ),
+                              CupertinoDialogAction(
+                                child: const Text("Bild von Kamera auswählen"),
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  final newImg = await _imgFromCamera();
+                                  if (newImg != null) {
+                                    setState(() {
+                                      image = File(newImg.path);
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        });
+                  }),
+              if (image != null)
+                Image.file(
+                  image!,
+                  height: 200,
+                ),
+              StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('global')
+                      .doc('categories')
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                          snapshot) {
+                    if (snapshot.hasData) {
+                      return Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          children: [
+                            CupertinoButton(
+                                child: const Text("Kategorie auswählen"),
+                                onPressed: () {
+                                  showCupertinoModalPopup<void>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        List<dynamic> useData =
+                                            snapshot.data!.data()!['names'];
+
+                                        return _buildBottomPicker(
+                                            _buildCupertinoPicker(
+                                                mapToCategoryList(useData)));
+                                      });
+                                }),
+                            if (categoryAdd != null)
+                              Text("Ausgewählte Kategorie ${categoryAdd!.name}")
+                          ],
+                        ),
+                      );
+                    }
+                    return const CupertinoActivityIndicator();
+                  }),
+              CupertinoTextField(
+                controller: nameController,
+                placeholder: "Namen eingeben",
+                onChanged: (changed) => setState(() {}),
+                clearButtonMode: OverlayVisibilityMode.editing,
+                textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(10.0),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: CupertinoTextField(
+                    controller: attributesController,
+                    autocorrect: false,
+                    textCapitalization: TextCapitalization.none,
+                    onChanged: (value) => setState(() {}),
+                    clearButtonMode: OverlayVisibilityMode.editing,
+                    textAlign: TextAlign.center,
+                    padding: const EdgeInsets.all(10.0),
+                    onSubmitted: (value) => addAttribute(value),
+                    onEditingComplete: () {},
+                    placeholder: "Eigenschaft eingeben",
+                    textInputAction: Platform.isAndroid
+                        ? TextInputAction.go
+                        : TextInputAction.done),
+              ),
+              CupertinoButton(
+                  child: const Text("Attribut hinzufügen"),
+                  onPressed: attributesController.text == ""
+                      ? null
+                      : () => addAttribute(attributesController.text)),
+              Column(
+                children: attributes
+                    .map(
+                      (e) => Row(
+                        children: [
+                          Tooltip(
+                            message: "Eigenschaft löschen",
+                            child: CupertinoButton(
+                              child: const Icon(
+                                CupertinoIcons.clear_circled_solid,
+                                color: CupertinoColors.systemRed,
+                              ),
+                              onPressed: () => setState(() {
+                                attributes.remove(e);
                               }),
-                          if (categoryAdd != null)
-                            Text("Ausgewählte Kategorie ${categoryAdd!.name}")
+                            ),
+                          ),
+                          Text(e),
                         ],
                       ),
-                    );
-                  }
-                  return const CupertinoActivityIndicator();
-                }),
-            CupertinoTextField(
-              controller: filenameController,
-              onChanged: (changed) => setState(() {}),
-              clearButtonMode: OverlayVisibilityMode.always,
-              textAlign: TextAlign.center,
-              padding: const EdgeInsets.all(10.0),
-            ),
-            const Spacer(),
-            CupertinoButton(
-                child: Text(
-                    'Bild ${filenameController.text} zur Kategorie ${categoryAdd != null ? categoryAdd!.name : ""} hinzufügen'),
-                onPressed: addPicture),
-          ],
+                    )
+                    .toList(),
+              ),
+              CupertinoButton(
+                  child: Text(
+                      'Bild ${nameController.text} zur Kategorie ${categoryAdd != null ? categoryAdd!.name : ""} hinzufügen'),
+                  onPressed: addPicture),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  addPicture() {
+  addAttribute(String value) {
+    if (value.trim().isNotEmpty) {
+      setState(() {
+        attributes.add(value);
+      });
+    }
+    attributesController.text = "";
+  }
+
+  addPicture() async {
     if (image != null && categoryAdd != null) {
       Picture picture = Picture(
-          name: filenameController.text,
+          name: nameController.text,
           category: categoryAdd!,
           filename: "-1");
+      picture.attributes = attributes.toList();
+      DocumentSnapshot<Map<String, dynamic>> data = await FirebaseFirestore.instance.collection('global').doc('names').get();
+      if (data.data() != null) {
+
+        List<dynamic> picNames = data.data()!['files'];
+        for (Map<String, dynamic> map in picNames) {
+          if (normString(nameController.text) == normString(map.values.first['name'])) {
+            await showCupertinoDialog(
+                context: context,
+                builder: (BuildContext bc) {
+                  return CupertinoAlertDialog(
+                    title: const Text("Da war jemand schneller"),
+                    content: Column(
+                      children: [
+                        Text(
+                            "Es gibt bereits ein Bild mit dem Namen ${nameController.text} in der Kategorie ${categoryAdd!.name}"),
+                      ],
+                    ),
+                    actions: <Widget>[
+                      CupertinoDialogAction(
+                        child: const Text("OK"),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  );
+                });
+            return;
+          }
+        }
+      }
       FirebaseStorage.instance
           .ref()
           .child(picture.getLink())
@@ -153,11 +240,11 @@ class _AddPictureState extends State<AddPicture> {
             context: context,
             builder: (BuildContext bc) {
               return CupertinoAlertDialog(
-                title: const Text("Da war jemand schneller"),
+                title: const Text("Hoppla"),
                 content: Column(
-                  children: [
+                  children: const [
                     Text(
-                        "Es gibt bereits ein Bild mit dem Namen ${filenameController.text} in der Kategorie ${categoryAdd!.name}"),
+                        "Da ist ein Fehler aufgetreten. Bitte versuche es nochmal"),
                   ],
                 ),
                 actions: <Widget>[
@@ -209,26 +296,29 @@ class _AddPictureState extends State<AddPicture> {
                   content: Column(
                     children: [
                       Text(
-                          "Das Bild ${filenameController.text} wurde erfolgreich hinzugefügt"),
+                          "Das Bild ${nameController.text} wurde erfolgreich hinzugefügt"),
                     ],
                   ),
                   actions: <Widget>[
                     CupertinoDialogAction(
-                      child: const Text("Ok"),
+                      child: const Text("OK"),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 );
               });
           setState(() {
-            filenameController.text = "";
+            nameController.text = "";
             image = null;
             categoryAdd = null;
+            attributes = {};
           });
-        }).onError((error, stackTrace) {
-          log(error.toString());
-          print(stackTrace.toString());
-          //TODO: Crashlytics
+        }).onError((error, stackTrace) async {
+          await FirebaseCrashlytics.instance.recordError(
+              error,
+              stackTrace,
+              reason: 'Namen der Dateien abrufen fehlgeschlagen'
+          );
           showCupertinoDialog(
               context: context,
               builder: (BuildContext bc) {
@@ -340,4 +430,5 @@ class _AddPictureState extends State<AddPicture> {
       ),
     );
   }
+  String normString(String toNorm) => toNorm.trim().toLowerCase().replaceAll(" ", "").replaceAll("\n", "").replaceAll("_", "").replaceAll("-", "");
 }

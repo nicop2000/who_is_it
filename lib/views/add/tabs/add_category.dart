@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:who_is_it/helper.dart';
 import 'package:who_is_it/model/category.dart';
@@ -16,31 +17,36 @@ class _AddCategoryState extends State<AddCategory> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Helper.getHeadline("Neues Kategorie hinzufügen")),
-                CupertinoTextField(
-                  controller: categoryNameController,
-                  onChanged: (changed) => setState(() {}),
-                  clearButtonMode: OverlayVisibilityMode.always,
-                  textAlign: TextAlign.center,
-                  padding: const EdgeInsets.all(10.0),
-                ),
-                CupertinoButton(
-                    child: Text(
-                        'Kategorie ${categoryNameController.text} hinzufügen'),
-                    onPressed: () => addCategory(categoryNameController.text))
-              ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Helper.getHeadline("Neues Kategorie hinzufügen")),
+                  CupertinoTextField(
+                    controller: categoryNameController,
+                    onChanged: (changed) => setState(() {}),
+                    clearButtonMode: OverlayVisibilityMode.editing,
+                    autocorrect: false,
+                    textCapitalization: TextCapitalization.none,
+                    placeholder: "Kategorie eingeben",
+                    textAlign: TextAlign.center,
+                    padding: const EdgeInsets.all(10.0),
+                  ),
+                  CupertinoButton(
+                      child: Text(
+                          'Kategorie ${categoryNameController.text} hinzufügen'),
+                      onPressed: () => addCategory(categoryNameController.text))
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -69,9 +75,13 @@ class _AddCategoryState extends State<AddCategory> {
             );
           });
       categoryNameController.text = "";
-    }).onError((error, stackTrace) {
-      //TODO: Crashlytics
-      showCupertinoDialog(
+    }).onError((error, stackTrace) async {
+      await FirebaseCrashlytics.instance.recordError(
+          error,
+          stackTrace,
+          reason: 'Kategorie hinzufügen fehlgeschlagen'
+      );
+      await showCupertinoDialog(
           context: context,
           builder: (BuildContext bc) {
             return CupertinoAlertDialog(
@@ -90,6 +100,9 @@ class _AddCategoryState extends State<AddCategory> {
             );
           });
     });
+    setState(() {
+
+    });
   }
 
   List<Category> mapToCategoryList(List<dynamic> listToSort) {
@@ -98,4 +111,6 @@ class _AddCategoryState extends State<AddCategory> {
     toReturn.sort((a, b) => a.name.compareTo(b.name));
     return toReturn;
   }
+
+
 }

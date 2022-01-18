@@ -1,22 +1,20 @@
+// ignore_for_file: implementation_imports
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/src/provider.dart';
 import 'package:who_is_it/model/category.dart';
+import 'package:who_is_it/model/opponent.dart';
 import 'package:who_is_it/model/picture.dart';
 
 class Game extends StatefulWidget {
-  const Game(
-      {Key? key,
-      required this.category,
-      this.pictureCount = 36,
-      required this.uidFriend})
+  const Game({Key? key, required this.categories, required this.pictureCount})
       : super(key: key);
-  final Category category;
+  final List<Category> categories;
   final int pictureCount;
-  final String uidFriend; //TODO: Friend model anlegen
 
   @override
   _GameState createState() => _GameState();
@@ -30,7 +28,7 @@ class _GameState extends State<Game> {
     return CupertinoPageScaffold(
       child: SafeArea(
         child: FutureBuilder(
-            future: _loadFilesFromFolder(widget.category.name),
+            future: _loadFilesFromFolder(widget.categories),
             builder:
                 (BuildContext context, AsyncSnapshot<List<Picture>> snapshot) {
               if (snapshot.hasError) return Text(snapshot.error!.toString());
@@ -44,8 +42,8 @@ class _GameState extends State<Game> {
                           Expanded(
                             child: GridView(
                               gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3,
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: MediaQuery.of(context).size.width > 500 ? 8 : 4,
                                       mainAxisSpacing: 30,
                                       crossAxisSpacing: 30),
                               children: snapshot.data!
@@ -55,37 +53,7 @@ class _GameState extends State<Game> {
                                           opacity: e.opacity,
                                         ),
                                         onLongPress: () async {
-                                          List<Widget> attributes = [
-                                            Text(
-                                              e.name,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            )
-                                          ];
-                                          if (e.attributes != null) {
-                                            attributes.addAll(e.attributes!
-                                                .map((s) => Text(s))
-                                                .toList());
-                                          }
-                                          await showCupertinoDialog(
-                                              context: context,
-                                              builder: (BuildContext bc) {
-                                                return CupertinoAlertDialog(
-                                                  title: const Text(
-                                                      "Eigenschaften"),
-                                                  content: Column(
-                                                    children: attributes,
-                                                  ),
-                                                  actions: <Widget>[
-                                                    CupertinoDialogAction(
-                                                      child: const Text("Ok"),
-                                                      onPressed: () =>
-                                                          Navigator.of(context)
-                                                              .pop(),
-                                                    ),
-                                                  ],
-                                                );
-                                              });
+                                          await showInfo(e);
                                         },
                                         onTap: () {
                                           opacityState(() {
@@ -102,7 +70,9 @@ class _GameState extends State<Game> {
                               StreamBuilder(
                                   stream: FirebaseFirestore.instance
                                       .collection('gameNumbers')
-                                      .doc(widget.uidFriend) //TODO: Überprüfen
+                                      .doc(context
+                                          .read<Opponent>()
+                                          .uid) //TODO: Überprüfen
                                       .snapshots(),
                                   builder: (BuildContext context,
                                       AsyncSnapshot<
@@ -111,7 +81,7 @@ class _GameState extends State<Game> {
                                           snapshot) {
                                     if (snapshot.hasData) {
                                       return FutureBuilder(
-                                          future: getOponentPicture(snapshot
+                                          future: getOpponentPicture(snapshot
                                               .data!
                                               .data()!['picture']),
                                           builder: (BuildContext context,
@@ -123,58 +93,22 @@ class _GameState extends State<Game> {
                                                   (BuildContext context,
                                                       StateSetter
                                                           opacityStateOponent) {
-                                                return GestureDetector(
-                                                  child: Opacity(
-                                                    child: picture.image!,
-                                                    opacity: picture.opacity,
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(top: 11.0),
+                                                  child: GestureDetector(
+                                                    child: Opacity(
+                                                      child: picture.image!,
+                                                      opacity: picture.opacity,
+                                                    ),
+                                                    onLongPress: () async {
+                                                      await showInfo(picture);
+                                                    },
+                                                    onTap: () {
+                                                      opacityStateOponent(() {
+                                                        picture.changeOpacity();
+                                                      });
+                                                    },
                                                   ),
-                                                  onLongPress: () async {
-                                                    List<Widget> attributes = [
-                                                      Text(
-                                                        picture.name,
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
-                                                      )
-                                                    ];
-                                                    if (picture.attributes !=
-                                                        null) {
-                                                      attributes.addAll(picture
-                                                          .attributes!
-                                                          .map((s) => Text(s))
-                                                          .toList());
-                                                    }
-                                                    await showCupertinoDialog(
-                                                        context: context,
-                                                        builder:
-                                                            (BuildContext bc) {
-                                                          return CupertinoAlertDialog(
-                                                            title: const Text(
-                                                                "Eigenschaften"),
-                                                            content: Column(
-                                                              children:
-                                                                  attributes,
-                                                            ),
-                                                            actions: <Widget>[
-                                                              CupertinoDialogAction(
-                                                                child:
-                                                                    const Text(
-                                                                        "OK"),
-                                                                onPressed: () =>
-                                                                    Navigator.of(
-                                                                            context)
-                                                                        .pop(),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        });
-                                                  },
-                                                  onTap: () {
-                                                    opacityStateOponent(() {
-                                                      picture.changeOpacity();
-                                                    });
-                                                  },
                                                 );
                                               });
                                             }
@@ -191,22 +125,38 @@ class _GameState extends State<Game> {
                                     }
                                     return Column(
                                       children: const [
-                                        Text("Nummer"),
                                         CupertinoActivityIndicator(),
                                       ],
                                     );
                                   }),
-                              CupertinoButton(
-                                  child: const Text("Neu senden"),
-                                  onPressed: sendNumber),
-                              CupertinoButton(
-                                  child: const Text("Alle anzeigen"),
-                                  onPressed: () {
-                                    backup.forEach((element) {
-                                      element.opacity = 1.0;
-                                      opacityState(() {});
-                                    });
-                                  }),
+                              Column(
+                                children: [
+                                  CupertinoButton(
+                                      child: const Text("Neu senden"),
+                                      onPressed: sendNumber),
+                                  CupertinoButton(
+                                      child: const Text("Alle anzeigen"),
+                                      onPressed: () {
+                                        for (Picture picture in backup) {
+                                          picture.opacity = 1.0;
+                                          opacityState(() {});
+                                        }
+                                      }),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  CupertinoButton(
+                                    child: const Text("Neue Runde"),
+                                    onPressed: () => Navigator.pushReplacement(
+                                      context,
+                                      CupertinoPageRoute(
+                                          builder: (_) =>
+                                              Game(categories: widget.categories, pictureCount: widget.pictureCount,)),
+                                    ),
+                                  ),
+                                ],
+                              )
                             ],
                           )
                         ],
@@ -221,7 +171,7 @@ class _GameState extends State<Game> {
     );
   }
 
-  Future<Picture?> getOponentPicture(int pictureNumber) async {
+  Future<Picture?> getOpponentPicture(int pictureNumber) async {
     DocumentSnapshot<Map<String, dynamic>> picData = await FirebaseFirestore
         .instance
         .collection('global')
@@ -245,6 +195,7 @@ class _GameState extends State<Game> {
           Picture pic2 = Picture(
               filename: picture.filename,
               category: picture.category,
+              attributes: picture.attributes,
               name: picture.name,
               image: image);
           return pic2;
@@ -254,22 +205,54 @@ class _GameState extends State<Game> {
     return null;
   }
 
-  Future<List<Picture>> _loadFilesFromFolder(String folder) async {
+  showInfo(Picture picture) async {
+    List<Widget> attributes = [
+      Text(
+        picture.name,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      )
+    ];
+    if (picture.attributes != null) {
+      attributes.addAll(picture.attributes!.map((s) => Text("• $s")).toList());
+    }
+    await showCupertinoDialog(
+        context: context,
+        builder: (BuildContext bc) {
+          return CupertinoAlertDialog(
+            content: Column(
+              children: attributes,
+            ),
+            actions: <Widget>[
+              CupertinoDialogAction(
+                child: const Text("OK"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<List<Picture>> _loadFilesFromFolder(List<Category> categories) async {
+    if(backup.isNotEmpty) return backup;
     int pictureCount = widget.pictureCount;
     try {
-      ListResult fileList = await FirebaseStorage.instance
-          .ref()
-          .child(folder.toLowerCase())
-          .listAll();
-      fileList.items.shuffle();
-      fileList.items.shuffle();
-      if (widget.pictureCount >= fileList.items.length) {
-        pictureCount = fileList.items.length - 1;
+      List<Reference> items = [];
+      for(Category category in categories) {
+            ListResult listResult = await FirebaseStorage.instance
+            .ref()
+            .child(category.name.toLowerCase().replaceAll(" ", "-"))
+            .listAll();
+            items.addAll(listResult.items);
       }
-      fileList.items.removeRange(pictureCount, fileList.items.length - 1);
 
-      List<Picture> pictures =
-          await Future.wait(fileList.items.map((ref) async {
+      items.shuffle(Random());
+      items.shuffle(Random());
+      if (widget.pictureCount >= items.length) {
+        pictureCount = items.length;
+      }
+      items.removeRange(pictureCount, items.length);
+
+      List<Picture> pictures = await Future.wait(items.map((ref) async {
         int filenameID = int.parse(ref.fullPath.split("/")[1]);
         DocumentSnapshot<Map<String, dynamic>> picData = await FirebaseFirestore
             .instance
@@ -284,6 +267,7 @@ class _GameState extends State<Game> {
               return Picture(
                 category: picture.category,
                 filename: picture.filename,
+                attributes: picture.attributes,
                 name: picture.name,
                 image: Image.network(
                   await ref.getDownloadURL(),
@@ -315,16 +299,11 @@ class _GameState extends State<Game> {
 
       return pictures;
     } on FirebaseException catch (e) {
-      print(e.code);
-      print(e.message);
-      print(e.stackTrace);
-      print(e.plugin);
-      //TODO: Crashlytics
-      // await FirebaseCrashlytics.instance.recordError(
-      //     e.message,
-      //     e.stackTrace,
-      //     reason: 'Dateipfade der Bilder von FirebaseStorage abrufen'
-      // );
+      await FirebaseCrashlytics.instance.recordError(
+          e.message,
+          e.stackTrace,
+          reason: 'Game: Bilder laden fehlgeschlagen | Code: ${e.code} | Plugin: ${e.plugin} '
+      );
     }
     return [];
   }
@@ -332,7 +311,7 @@ class _GameState extends State<Game> {
   Future<void> sendNumber() async {
     await FirebaseFirestore.instance
         .collection('gameNumbers')
-        .doc(FirebaseAuth.instance.currentUser!.uid) //TODO: eigene UID rein
+        .doc(FirebaseAuth.instance.currentUser!.uid) //eigene UID
         .set({
       "picture": int.parse(backup[Random().nextInt(backup.length - 1)].filename)
     });
