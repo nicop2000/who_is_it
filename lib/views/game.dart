@@ -5,7 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/src/provider.dart';
+import 'package:who_is_it/model/app.dart';
 import 'package:who_is_it/model/category.dart';
 import 'package:who_is_it/model/opponent.dart';
 import 'package:who_is_it/model/picture.dart';
@@ -43,17 +45,32 @@ class _GameState extends State<Game> {
                             child: GridView(
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: MediaQuery.of(context).size.width > 500 ? 8 : 4,
+                                      crossAxisCount:
+                                          MediaQuery.of(context).size.width >
+                                                  500
+                                              ? 8
+                                              : 4,
                                       mainAxisSpacing: 30,
                                       crossAxisSpacing: 30),
                               children: snapshot.data!
                                   .map((e) => GestureDetector(
                                         child: Opacity(
-                                          child: e.image!,
+                                          child: Container(
+                                            child: e.image!,
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: containsString(
+                                                            e.attributes,
+                                                            "Not Mental Stable")
+                                                        ? CupertinoColors
+                                                            .destructiveRed
+                                                        : CupertinoColors
+                                                            .activeGreen)),
+                                          ),
                                           opacity: e.opacity,
                                         ),
                                         onLongPress: () async {
-                                          await showInfo(e);
+                                          await showInfo(e, context.read<App>().brightness);
                                         },
                                         onTap: () {
                                           opacityState(() {
@@ -70,9 +87,7 @@ class _GameState extends State<Game> {
                               StreamBuilder(
                                   stream: FirebaseFirestore.instance
                                       .collection('gameNumbers')
-                                      .doc(context
-                                          .read<Opponent>()
-                                          .uid) //TODO: Überprüfen
+                                      .doc(context.read<Opponent>().uid)
                                       .snapshots(),
                                   builder: (BuildContext context,
                                       AsyncSnapshot<
@@ -94,14 +109,28 @@ class _GameState extends State<Game> {
                                                       StateSetter
                                                           opacityStateOponent) {
                                                 return Padding(
-                                                  padding: const EdgeInsets.only(top: 11.0),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 11.0),
                                                   child: GestureDetector(
                                                     child: Opacity(
-                                                      child: picture.image!,
+                                                      child: Container(
+                                                        child: picture.image!,
+                                                        decoration: BoxDecoration(
+                                                            border: Border.all(
+                                                                color: containsString(
+                                                                        picture
+                                                                            .attributes,
+                                                                        "Not Mental Stable")
+                                                                    ? CupertinoColors
+                                                                        .destructiveRed
+                                                                    : CupertinoColors
+                                                                        .activeGreen)),
+                                                      ),
                                                       opacity: picture.opacity,
                                                     ),
                                                     onLongPress: () async {
-                                                      await showInfo(picture);
+                                                      await showInfo(picture, context.read<App>().brightness);
                                                     },
                                                     onTap: () {
                                                       opacityStateOponent(() {
@@ -151,8 +180,11 @@ class _GameState extends State<Game> {
                                     onPressed: () => Navigator.pushReplacement(
                                       context,
                                       CupertinoPageRoute(
-                                          builder: (_) =>
-                                              Game(categories: widget.categories, pictureCount: widget.pictureCount,)),
+                                          builder: (_) => Game(
+                                                categories: widget.categories,
+                                                pictureCount:
+                                                    widget.pictureCount,
+                                              )),
                                     ),
                                   ),
                                 ],
@@ -205,44 +237,88 @@ class _GameState extends State<Game> {
     return null;
   }
 
-  showInfo(Picture picture) async {
+  showInfo(Picture picture, Brightness brightness) async {
+    double height = MediaQuery.of(context).size.height / 2;
+    double width = MediaQuery.of(context).size.width / 3;
     List<Widget> attributes = [
-      Text(
-        picture.name,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            Spacer(),
+            Column(
+              children: [
+                Text(
+                  "${picture.name}",
+                  style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,),
+                ),
+                Text(
+                  "aus „${picture.category.name}“",
+                  style:
+                      TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
+                ),
+              ],
+            ),
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Image(image: picture.image!.image, height: height - 200, width: width - 100,),
+            ),
+            Spacer(),
+
+          ],
+        ),
       )
     ];
     if (picture.attributes != null) {
-      attributes.addAll(picture.attributes!.map((s) => Text("• $s")).toList());
+      attributes.addAll(picture.attributes!
+          .map((s) => Text(
+                "• $s",
+                style: TextStyle(fontSize: 18, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
+              ))
+          .toList());
     }
+
     await showCupertinoDialog(
+      barrierDismissible: true,
         context: context,
         builder: (BuildContext bc) {
-          return CupertinoAlertDialog(
-            content: Column(
-              children: attributes,
-            ),
-            actions: <Widget>[
-              CupertinoDialogAction(
-                child: const Text("OK"),
-                onPressed: () => Navigator.of(context).pop(),
+          return Dialog(
+            child: Container(
+              color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : null,
+              width: MediaQuery.of(context).size.width / 2,
+              height: height,
+              child: Column(
+                children: [
+                  Column(
+                    children: attributes,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: CupertinoDialogAction(
+                      child: const Text("OK"),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         });
   }
 
   Future<List<Picture>> _loadFilesFromFolder(List<Category> categories) async {
-    if(backup.isNotEmpty) return backup;
+    if (backup.isNotEmpty) return backup;
     int pictureCount = widget.pictureCount;
     try {
       List<Reference> items = [];
-      for(Category category in categories) {
-            ListResult listResult = await FirebaseStorage.instance
+      for (Category category in categories) {
+        ListResult listResult = await FirebaseStorage.instance
             .ref()
             .child(category.name.toLowerCase().replaceAll(" ", "-"))
             .listAll();
-            items.addAll(listResult.items);
+        items.addAll(listResult.items);
       }
 
       items.shuffle(Random());
@@ -299,11 +375,9 @@ class _GameState extends State<Game> {
 
       return pictures;
     } on FirebaseException catch (e) {
-      await FirebaseCrashlytics.instance.recordError(
-          e.message,
-          e.stackTrace,
-          reason: 'Game: Bilder laden fehlgeschlagen | Code: ${e.code} | Plugin: ${e.plugin} '
-      );
+      await FirebaseCrashlytics.instance.recordError(e.message, e.stackTrace,
+          reason:
+              'Game: Bilder laden fehlgeschlagen | Code: ${e.code} | Plugin: ${e.plugin} ');
     }
     return [];
   }
@@ -315,5 +389,13 @@ class _GameState extends State<Game> {
         .set({
       "picture": int.parse(backup[Random().nextInt(backup.length - 1)].filename)
     });
+  }
+
+  bool containsString(List<String>? list, String string) {
+    if (list == null) return false;
+    for (String e in list) {
+      if (e.toString() == string) return true;
+    }
+    return false;
   }
 }

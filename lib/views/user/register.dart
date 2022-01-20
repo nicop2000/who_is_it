@@ -123,6 +123,7 @@ class _RegisterState extends State<Register> {
                               ),
                             );
                         showCupertinoDialog(
+                            barrierDismissible: true,
                             context: context,
                             builder: (BuildContext bc) {
                               return CupertinoAlertDialog(
@@ -132,6 +133,29 @@ class _RegisterState extends State<Register> {
                                   children: const [
                                     Text(
                                         "Der Account wurde erfolgreich angelegt"),
+                                  ],
+                                ),
+                                actions: <Widget>[
+                                  CupertinoDialogAction(
+                                    child: const Text("OK"),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              );
+                            });
+                      }).onError((error, stackTrace) {
+                        showCupertinoDialog(
+                            barrierDismissible: true,
+                            context: context,
+                            builder: (BuildContext bc) {
+                              return CupertinoAlertDialog(
+                                title: const Text(
+                                    "Hoppla"),
+                                content: Column(
+                                  children: const [
+                                    Text(
+                                        "Das hat nicht funktioniert. Versuche es nochmal"),
                                   ],
                                 ),
                                 actions: <Widget>[

@@ -121,7 +121,7 @@ class _SearchPageState extends State<SearchPage> {
 
     } else if (isInvited) {
       return CupertinoButton(
-        child: const Icon(CupertinoIcons.clear_circled_solid, color: CupertinoColors.systemRed,), //TODO: Icon?
+        child: const Icon(CupertinoIcons.clear_circled_solid, color: CupertinoColors.systemRed,),
         onPressed: () {
           users.doc(snapshot.id).update({
             'invites': FieldValue.arrayRemove([uid])

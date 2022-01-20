@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:who_is_it/model/app.dart';
 import 'package:who_is_it/model/category.dart';
 import 'package:who_is_it/model/opponent.dart';
 import 'package:who_is_it/views/game.dart';
@@ -17,7 +19,9 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>{
+
+
   List<Category> categories = [];
   final user = FirebaseAuth.instance.currentUser!;
   final users = FirebaseFirestore.instance.collection("users");
@@ -25,45 +29,61 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        leading: Text(""),
+      navigationBar: CupertinoNavigationBar(
         middle: Text('Menü'),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: GridView(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 20),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: MediaQuery
+                  .of(context)
+                  .size
+                  .width > 500 ? 4 : 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 20),
           children: [
             getMenuButton(
                 iconData: CupertinoIcons.burst,
-                title: context.watch<Opponent>().name.isEmpty
+                title: context
+                    .watch<Opponent>()
+                    .name
+                    .isEmpty
                     ? "Gegenspieler auswählen"
-                    : "Gegenspieler: ${context.read<Opponent>().name}",
+                    : "Gegenspieler: ${context
+                    .read<Opponent>()
+                    .name}",
                 onTap: () => chooseOpponent()),
+            getMenuButton(
+                iconData: CupertinoIcons.clear,
+                title: "Gegenspieler zurücksetzen",
+                onTap: context
+                    .watch<Opponent>()
+                    .uid
+                    .isEmpty
+                    ? null
+                    : () => context.read<Opponent>().reset()),
             getMenuButton(
                 iconData: CupertinoIcons.book,
                 title: "Kategorie(n) auswählen",
                 onTap: () => chooseCategories()),
             getMenuButton(
                 iconData: CupertinoIcons.clear,
-                title: "Gegenspieler zurücksetzen",
-                onTap: context.watch<Opponent>().uid.isEmpty
-                    ? null
-                    : () => context.read<Opponent>().reset()),
-            getMenuButton(
-                iconData: CupertinoIcons.clear,
                 title: "Kategorien zurücksetzen",
                 onTap: categories.isEmpty
                     ? null
-                    : () => setState(() {
-                          categories.clear();
-                        })),
+                    : () =>
+                    setState(() {
+                      categories.clear();
+                    })),
             getMenuButton(
                 iconData: CupertinoIcons.play,
                 title: "Spiel starten",
-                onTap: (context.watch<Opponent>().uid.isEmpty ||
-                        categories.isEmpty)
+                onTap: (context
+                    .watch<Opponent>()
+                    .uid
+                    .isEmpty ||
+                    categories.isEmpty)
                     ? null
                     : () => playGame()),
             getMenuButton(
@@ -77,7 +97,8 @@ class _HomePageState extends State<HomePage> {
             getMenuButton(
                 iconData: CupertinoIcons.lock,
                 title: "Ausloggen",
-                onTap: () => FirebaseAuth.instance.signOut().then((value) {
+                onTap: () =>
+                    FirebaseAuth.instance.signOut().then((value) {
                       context.read<UserModel>().callItADay();
                       Navigator.of(context).pushReplacement(
                           CupertinoPageRoute(builder: (_) => const Welcome()));
@@ -85,11 +106,7 @@ class _HomePageState extends State<HomePage> {
             getMenuButton(
                 iconData: CupertinoIcons.delete_solid,
                 title: "Account löschen",
-                onTap: () => FirebaseAuth.instance.signOut().then((value) {
-                  context.read<UserModel>().callItADay();
-                  Navigator.of(context).pushReplacement(
-                      CupertinoPageRoute(builder: (_) => const Welcome()));
-                })),
+                onTap: () => deleteConfirmation(context)),
           ],
         ),
       ),
@@ -98,11 +115,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<CupertinoDialogAction>> getOpponentOptions() async {
     List<CupertinoDialogAction> actions = [];
-    for (String uid in context.read<UserModel>().friends) {
+    for (String uid in context
+        .read<UserModel>()
+        .friends) {
       DocumentSnapshot<Map<String, dynamic>> rawData =
-          await FirebaseFirestore.instance.collection("users").doc(uid).get();
+      await FirebaseFirestore.instance.collection("users").doc(uid).get();
       if (rawData.data() != null) {
-
         actions.add(
           CupertinoDialogAction(
             child: Text(rawData.data()!['name']),
@@ -124,11 +142,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   getMenuButton(
-      {required IconData iconData,
-      required String title,
-      required Function? onTap}) {
+          {required IconData iconData,
+        required String title,
+        required Function? onTap}) {
     return Card(
       elevation: 3.5,
+      shadowColor: context.watch<App>().brightness == Brightness.dark ? CupertinoColors.white : null,
+      color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       child: InkWell(
         onTap: onTap == null ? null : () => onTap(),
@@ -148,7 +168,7 @@ class _HomePageState extends State<HomePage> {
               child: Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: Colors.black87),
+                style: TextStyle(fontSize: 10, color: context.watch<App>().brightness == Brightness.dark ? CupertinoColors.white : null),
               ),
             )
           ],
@@ -160,6 +180,7 @@ class _HomePageState extends State<HomePage> {
   chooseOpponent() async {
     List<CupertinoDialogAction> actions = await getOpponentOptions();
     showCupertinoDialog(
+        barrierDismissible: true,
         context: context,
         builder: (BuildContext bc) {
           return CupertinoAlertDialog(
@@ -180,26 +201,37 @@ class _HomePageState extends State<HomePage> {
                   .snapshots(),
               builder: (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
-                      snapshot) {
+                  snapshot) {
                 if (snapshot.hasData) {
                   List<dynamic> useData = snapshot.data!.data()!['names'];
-                  useData.sort((a,b) => a['name'].toString().compareTo(b['name'].toString()));
+                  useData.sort((a, b) =>
+                      a['name'].toString().compareTo(b['name'].toString()));
+
                   return StatefulBuilder(builder:
                       (BuildContext context, StateSetter selectedState) {
                     List<CupertinoDialogAction> actions = useData.map((e) {
                       Category category = Category.fromJson(e);
                       return CupertinoDialogAction(
-                        child: Text(
-                          category.name,
-                          style: TextStyle(
-                              color: categories.containsCategory(category)
-                                  ? CupertinoColors.activeGreen
-                                  : CupertinoColors.systemGrey),
-                        ),
+                        child: FutureBuilder(
+                            future: getPictureCount(category),
+                            builder: (BuildContext context,
+                                AsyncSnapshot<int> snapshot) {
+                              if (snapshot.hasData) {
+                                return Text(
+                                  "${category.name} (${snapshot.data!} Bilder)",
+                                  style: TextStyle(
+                                      color: categories.containsCategory(
+                                          category)
+                                          ? CupertinoColors.activeGreen
+                                          : CupertinoColors.systemGrey),
+                                );
+                              }
+                              return const Text("Lädt...");
+                            }),
                         onPressed: () {
                           if (categories.containsCategory(category)) {
                             categories.removeWhere(
-                                (element) => element.name == category.name);
+                                    (element) => element.name == category.name);
                           } else {
                             categories.add(category);
                           }
@@ -225,14 +257,16 @@ class _HomePageState extends State<HomePage> {
                     actions.add(CupertinoDialogAction(
                         child: const Text("OK",
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        onPressed: () => setState(() {
+                        onPressed: () =>
+                            setState(() {
                               Navigator.of(context).pop();
                             })));
                     return CupertinoAlertDialog(
                       title: const Text("Kategorie"),
                       content: Column(
                         children: const [
-                          Text("Bitte wähle eine oder mehrere Kategorie(n) aus"),
+                          Text(
+                              "Bitte wähle eine oder mehrere Kategorie(n) aus"),
                         ],
                       ),
                       actions: actions,
@@ -244,9 +278,15 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
+  Future<int> getPictureCount(Category category) async {
+    ListResult pictures = await FirebaseStorage.instance.ref(
+        category.name.toLowerCase().replaceAll(" ", "-")).listAll();
+    return pictures.items.length;
+  }
+
   playGame() async {
     TextEditingController bilderZahl = TextEditingController();
-    bilderZahl.text = "36";
+    bilderZahl.text = "40";
     showCupertinoDialog(
         context: context,
         builder: (BuildContext bc) {
@@ -271,10 +311,11 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
-                        builder: (_) => Game(
-                          categories: categories,
-                          pictureCount: int.tryParse(bilderZahl.text) ?? 36,
-                        ),
+                        builder: (_) =>
+                            Game(
+                              categories: categories,
+                              pictureCount: int.tryParse(bilderZahl.text) ?? 40,
+                            ),
                       ),
                     );
                   }),
@@ -287,9 +328,38 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  deleteAccount() async {
+  deleteConfirmation(BuildContext context) {
+    showCupertinoDialog(
+        context: context,
+        builder: (BuildContext bc) {
+          return CupertinoAlertDialog(
+            title: const Text("Warnung"),
+            content: const Text(
+                "Du bist dabei deinen Account zu löschen. Dabei gehen alle Daten verloren"),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text("Ja, Account löschen"),
+                onPressed: () => deleteAccount(context),
+              ),
+              CupertinoDialogAction(
+                child: const Text(
+                  "Abbrechen",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        });
+  }
+
+  deleteAccount(BuildContext context) async {
+    context.read<UserModel>().callItADay();
     await users.doc(user.uid).delete();
-    await FirebaseFirestore.instance.collection("gameNumbers").doc(user.uid).delete();
+    await FirebaseFirestore.instance
+        .collection("gameNumbers")
+        .doc(user.uid)
+        .delete();
     final toDelete = [
       ...(await users.where("invites", arrayContains: user.uid).get()).docs,
       ...(await users.where("requests", arrayContains: user.uid).get()).docs,
@@ -298,7 +368,10 @@ class _HomePageState extends State<HomePage> {
     for (final doc in toDelete) {
       deleteUidFromDoc(doc.id);
     }
+
     user.delete();
+    Navigator.of(context)
+        .pushReplacement(CupertinoPageRoute(builder: (_) => const Welcome()));
   }
 
   deleteUidFromDoc(String uid) {

@@ -62,9 +62,11 @@ class _LoginState extends State<Login> {
                 textCapitalization: TextCapitalization.none,
                 autocorrect: false,
               ),
-
               CupertinoButton(
-                  child: const Text("Einloggen", style: TextStyle(fontWeight: FontWeight.bold),),
+                  child: const Text(
+                    "Einloggen",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () {
                     if (loginForm.currentState!.validate()) {
                       FirebaseAuth.instance
@@ -81,7 +83,25 @@ class _LoginState extends State<Login> {
                             ),
                           );
                         },
-                      ).catchError((error) {});
+                      ).catchError((error) {
+                        showCupertinoDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (BuildContext context) {
+                              return CupertinoAlertDialog(
+                                title: Text("Hoppla"),
+                                content: Text(
+                                    "Es gibt keinen Account mit diesen Zugangsdaten"),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("OK"),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  )
+                                ],
+                              );
+                            });
+                      });
                     }
                   }),
               CupertinoButton(
@@ -90,7 +110,6 @@ class _LoginState extends State<Login> {
             ],
           ),
         ),
-
       ],
     );
   }

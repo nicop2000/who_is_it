@@ -6,7 +6,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/src/provider.dart';
 import 'package:who_is_it/helper.dart';
+import 'package:who_is_it/model/app.dart';
 import 'package:who_is_it/model/category.dart';
 import 'package:who_is_it/model/picture.dart';
 
@@ -209,6 +211,7 @@ class _AddPictureState extends State<AddPicture> {
         for (Map<String, dynamic> map in picNames) {
           if (normString(nameController.text) == normString(map.values.first['name'])) {
             await showCupertinoDialog(
+                barrierDismissible: true,
                 context: context,
                 builder: (BuildContext bc) {
                   return CupertinoAlertDialog(
@@ -237,6 +240,7 @@ class _AddPictureState extends State<AddPicture> {
           .getDownloadURL()
           .then((value) async {
         await showCupertinoDialog(
+            barrierDismissible: true,
             context: context,
             builder: (BuildContext bc) {
               return CupertinoAlertDialog(
@@ -268,6 +272,8 @@ class _AddPictureState extends State<AddPicture> {
               1;
           picture.filename = (nextID).toString();
         }
+
+
         FirebaseStorage.instance
             .ref()
             .child(picture.getLink())
@@ -283,12 +289,14 @@ class _AddPictureState extends State<AddPicture> {
               {nextID.toString(): picture.toJson()}
             ])
           });
+
           await FirebaseFirestore.instance
               .collection('global')
               .doc('lastID')
               .set({'id': nextID}).then((value) => writeBatch.commit());
 
           await showCupertinoDialog(
+              barrierDismissible: true,
               context: context,
               builder: (BuildContext bc) {
                 return CupertinoAlertDialog(
@@ -319,7 +327,8 @@ class _AddPictureState extends State<AddPicture> {
               stackTrace,
               reason: 'Namen der Dateien abrufen fehlgeschlagen'
           );
-          showCupertinoDialog(
+          await showCupertinoDialog(
+              barrierDismissible: true,
               context: context,
               builder: (BuildContext bc) {
                 return CupertinoAlertDialog(
@@ -369,13 +378,8 @@ class _AddPictureState extends State<AddPicture> {
   Widget _buildCupertinoPicker(List<Category> items) {
     categoryAdd = items.first;
     return CupertinoPicker(
-      // magnification: 1.5,
-      backgroundColor: CupertinoColors.white,
       itemExtent: 30,
-      //height of each item
-      // squeeze: 0.5,
       magnification: 1.2,
-
       looping: false,
       children: items
           .map((item) => Center(
@@ -385,7 +389,6 @@ class _AddPictureState extends State<AddPicture> {
                 ),
               ))
           .toList(),
-
       onSelectedItemChanged: (index) {
         categoryAdd = items[index];
       },
@@ -394,30 +397,32 @@ class _AddPictureState extends State<AddPicture> {
 
   Widget _buildBottomPicker(Widget picker) {
     return Container(
-      color: CupertinoColors.white,
       height: MediaQuery.of(context).size.height / 3,
       child: Column(
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              CupertinoButton(
-                child: const Text('Abbrechen'),
-                onPressed: () {
-                  setState(() {
-                    categoryAdd = null;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              CupertinoButton(
-                child: const Text('Fertig'),
-                onPressed: () {
-                  setState(() {});
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+          Container(
+            color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : null,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                CupertinoButton(
+                  child: const Text('Abbrechen'),
+                  onPressed: () {
+                    setState(() {
+                      categoryAdd = null;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                CupertinoButton(
+                  child: const Text('Fertig'),
+                  onPressed: () {
+                    setState(() {});
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
           const Divider(
             height: 0,

@@ -119,6 +119,7 @@ class _InvitesPageState extends State<InvitesPage> {
                   'invites': FieldValue.arrayRemove([item.id]),
                 });
                 showCupertinoDialog(
+                    barrierDismissible: true,
                     context: context,
                     builder: (BuildContext bc) {
                       return CupertinoAlertDialog(

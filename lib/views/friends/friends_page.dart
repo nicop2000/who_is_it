@@ -19,7 +19,6 @@ class FriendsPage extends StatelessWidget {
       child: CupertinoTabScaffold(
           tabBar: CupertinoTabBar(
             items: const [
-              //TODO: Icons
               BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: 'Suchen'),
               BottomNavigationBarItem(
                   icon: Icon(CupertinoIcons.arrow_down), label: 'Anfragen')

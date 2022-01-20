@@ -56,6 +56,7 @@ class _AddCategoryState extends State<AddCategory> {
       'names': FieldValue.arrayUnion([Category(name: name).toJson()])
     }).then((value) async {
       await showCupertinoDialog(
+          barrierDismissible: true,
           context: context,
           builder: (BuildContext bc) {
             return CupertinoAlertDialog(
@@ -83,6 +84,7 @@ class _AddCategoryState extends State<AddCategory> {
       );
       await showCupertinoDialog(
           context: context,
+          barrierDismissible: true,
           builder: (BuildContext bc) {
             return CupertinoAlertDialog(
               title: const Text("Fehler"),

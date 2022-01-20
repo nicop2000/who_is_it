@@ -10,10 +10,8 @@ class TabViewController extends StatefulWidget {
 }
 
 class _TabViewControllerState extends State<TabViewController> {
-  final List<Widget> _tabs = [
-    const AddCategory(),
-    const AddPicture()
-  ];
+  final List<Widget> _tabs = [const AddCategory(), const AddPicture()];
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -23,8 +21,8 @@ class _TabViewControllerState extends State<TabViewController> {
       child: CupertinoTabScaffold(
           tabBar: CupertinoTabBar(
             items: const [
-              //TODO: Icons
-              BottomNavigationBarItem(icon: Icon(CupertinoIcons.book), label: 'Neue Kategorie'),
+              BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.book), label: 'Neue Kategorie'),
               BottomNavigationBarItem(
                   icon: Icon(CupertinoIcons.camera), label: 'Neues Bild')
             ],
