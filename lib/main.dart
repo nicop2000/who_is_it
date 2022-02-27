@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,6 +12,7 @@ import 'package:who_is_it/model/user_model.dart';
 
 import 'package:who_is_it/views/add/tabs/add_category.dart';
 import 'package:who_is_it/views/add/tabs/add_picture.dart';
+import 'package:who_is_it/views/catalog.dart';
 import 'package:who_is_it/views/friends/friends_page.dart';
 import 'package:who_is_it/views/add/tab_view_add.dart';
 import 'package:who_is_it/views/loading_page.dart';
@@ -19,7 +22,26 @@ import 'package:who_is_it/views/welcome.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+    Firebase.initializeApp();
+
+  //   await Firebase.initializeApp(
+  //     options: FirebaseOptions(
+  //         apiKey: "AIzaSyBDmEL-udQKrnSbNJc-qPheZIIzBxhk3lc",
+  //         // Your apiKey
+  //         appId: "1:612243160927::df27a6cde91d9af31800ea",
+  //         // Your appId
+  //         messagingSenderId: "612243160927",
+  //         // Your messagingSenderId
+  //         projectId: "who-is-it-31ad6",
+  //         // Your projectId
+  //         authDomain: "who-is-it-31ad6.firebaseapp.com",
+  //         databaseURL: "https://who-is-it-31ad6-default-rtdb.europe-west1.firebasedatabase.app",
+  //         storageBucket: "who-is-it-31ad6.appspot.com",
+  //         measurementId: "G-RVM8V6Q3B5"
+  //     ),
+  //   );
+  // }
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => Opponent("", "")),
@@ -39,8 +61,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver  {
 
-  Brightness? _brightness;
-
   @override
   void initState() {
     super.initState();
@@ -56,15 +76,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver  {
   @override
   void didChangePlatformBrightness() {
     setState(() {
-    context.read<App>().setBrightness(WidgetsBinding.instance?.window.platformBrightness ?? Brightness.dark);
+    context.read<App>().setBrightness(WidgetsBinding.instance?.window.platformBrightness ?? Brightness.light);
     });
     super.didChangePlatformBrightness();
   }
 
   @override
   Widget build(BuildContext context) {
+    context.read<App>().brightness = WidgetsBinding.instance?.window.platformBrightness ?? Brightness.light;
     return CupertinoApp(
       title: 'Wer ist es?',
+      debugShowCheckedModeBanner: false,
       theme: getThemeData(context.watch<App>().brightness),
       initialRoute: '/',
       routes: {
@@ -74,6 +96,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver  {
         '/friends': (context) => const FriendsPage(),
         '/login': (context) => const Login(),
         '/register': (context) => const Register(),
+        '/catalog': (context) => const Catalog(),
         '/': (context) => FirebaseAuth.instance.currentUser != null ? LoadingPage() : const Welcome(),
       },
     );

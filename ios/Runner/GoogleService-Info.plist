@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>612243160927-h3q7utp4j3bvhb3qfap0fi3n1fp76pqd.apps.googleusercontent.com</string>
+	<string>612243160927-0hm90476hj1rk8o0hlabm6kgel9q6e5i.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.612243160927-h3q7utp4j3bvhb3qfap0fi3n1fp76pqd</string>
+	<string>com.googleusercontent.apps.612243160927-0hm90476hj1rk8o0hlabm6kgel9q6e5i</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAgYzipyP1eI7Q1pAzXk5kkZmNwkEBveEc</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>de.petersen.who.is.it</string>
+	<string>de.petersen.nico.whoisit</string>
 	<key>PROJECT_ID</key>
 	<string>who-is-it-31ad6</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:612243160927:ios:c8067895c5736e621800ea</string>
+	<string>1:612243160927:ios:0712ee1ad9503fb31800ea</string>
+	<key>DATABASE_URL</key>
+	<string>https://who-is-it-31ad6-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

@@ -145,7 +145,7 @@ class _GameState extends State<Game> {
                                               return const Text(
                                                   "Ein Fehler ist aufgetreten bei Bild holen");
                                             }
-                                            return const CupertinoActivityIndicator();
+                                            return const Center(child: CupertinoActivityIndicator());
                                           });
                                     }
                                     if (snapshot.hasError) {
@@ -238,70 +238,76 @@ class _GameState extends State<Game> {
   }
 
   showInfo(Picture picture, Brightness brightness) async {
-    double height = MediaQuery.of(context).size.height / 2;
+    double height = MediaQuery.of(context).size.height / 1.9;
     double width = MediaQuery.of(context).size.width / 3;
-    List<Widget> attributes = [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: Row(
-          children: [
-            Spacer(),
-            Column(
-              children: [
-                Text(
-                  "${picture.name}",
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,),
-                ),
-                Text(
-                  "aus „${picture.category.name}“",
-                  style:
-                      TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
-                ),
-              ],
-            ),
-            Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Image(image: picture.image!.image, height: height - 200, width: width - 100,),
-            ),
-            Spacer(),
-
-          ],
-        ),
-      )
-    ];
-    if (picture.attributes != null) {
-      attributes.addAll(picture.attributes!
-          .map((s) => Text(
-                "• $s",
-                style: TextStyle(fontSize: 18, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
-              ))
-          .toList());
-    }
+    Padding attributes = Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: picture.attributes!
+            .map((s) => Text(
+                  "• $s",
+                  style: TextStyle(fontSize: 18, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
+                ))
+            .toList()),
+      );
 
     await showCupertinoDialog(
       barrierDismissible: true,
         context: context,
         builder: (BuildContext bc) {
           return Dialog(
+            backgroundColor: Colors.transparent,
             child: Container(
-              color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : null,
-              width: MediaQuery.of(context).size.width / 2,
+              decoration: BoxDecoration(
+                  color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : CupertinoColors.white,
+                  borderRadius: new BorderRadius.only(
+                    topLeft: const Radius.circular(20.0),
+                    topRight: const Radius.circular(20.0),
+                    bottomLeft: const Radius.circular(20.0),
+                    bottomRight: const Radius.circular(20.0)
+                  )
+              ),
+
+
+              width: MediaQuery.of(context).size.width / 1.5,
               height: height,
-              child: Column(
-                children: [
-                  Column(
-                    children: attributes,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15.0),
-                    child: CupertinoDialogAction(
-                      child: const Text("OK"),
-                      onPressed: () => Navigator.of(context).pop(),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              "${picture.name}",
+                              style:
+                              TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black,),
+                            ),
+                            Text(
+                              "aus „${picture.category.name}“",
+                              style:
+                              TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: brightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Image(image: picture.image!.image, height: MediaQuery.of(context).size.height / 3 - 50,),
+                    ),
+                    attributes,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15.0),
+                      child: CupertinoDialogAction(
+                        child: const Text("OK"),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -311,6 +317,7 @@ class _GameState extends State<Game> {
   Future<List<Picture>> _loadFilesFromFolder(List<Category> categories) async {
     if (backup.isNotEmpty) return backup;
     int pictureCount = widget.pictureCount;
+    if (pictureCount < 2) pictureCount = 2;
     try {
       List<Reference> items = [];
       for (Category category in categories) {

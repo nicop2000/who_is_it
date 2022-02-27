@@ -28,6 +28,7 @@ class _AddPictureState extends State<AddPicture> {
   TextEditingController nameController = TextEditingController();
   TextEditingController attributesController = TextEditingController();
   Set<String> attributes = {};
+  bool mentalStable = false;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +134,24 @@ class _AddPictureState extends State<AddPicture> {
                 padding: const EdgeInsets.all(10.0),
               ),
               Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Not Mental Stable"),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+                      child: CupertinoSwitch(
+                          value: mentalStable,
+                          onChanged: (value) => setState(() {
+                                mentalStable = value;
+                              })),
+                    ),
+                    Text("Mental Stable")
+                  ],
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.only(top: 20.0),
                 child: CupertinoTextField(
                     controller: attributesController,
@@ -150,7 +169,7 @@ class _AddPictureState extends State<AddPicture> {
                         : TextInputAction.done),
               ),
               CupertinoButton(
-                  child: const Text("Attribut hinzufügen"),
+                  child: const Text("Eigenschaft hinzufügen"),
                   onPressed: attributesController.text == ""
                       ? null
                       : () => addAttribute(attributesController.text)),
@@ -198,18 +217,27 @@ class _AddPictureState extends State<AddPicture> {
   }
 
   addPicture() async {
-    if (image != null && categoryAdd != null) {
-      Picture picture = Picture(
-          name: nameController.text,
-          category: categoryAdd!,
-          filename: "-1");
-      picture.attributes = attributes.toList();
-      DocumentSnapshot<Map<String, dynamic>> data = await FirebaseFirestore.instance.collection('global').doc('names').get();
-      if (data.data() != null) {
 
+    if (image != null && categoryAdd != null) {
+      showCupertinoDialog(context: context, builder: (BuildContext context) {
+        return CupertinoAlertDialog(title: Text("Bild wird hochgeladen..."),content: CupertinoActivityIndicator(),);
+      });
+      Picture picture = Picture(
+          name: nameController.text, category: categoryAdd!, filename: "-1");
+      picture.attributes = attributes.toList();
+      picture.attributes!
+          .add(mentalStable ? "Mental Stable" : "Not Mental Stable");
+      DocumentSnapshot<Map<String, dynamic>> data = await FirebaseFirestore
+          .instance
+          .collection('global')
+          .doc('names')
+          .get();
+      if (data.data() != null) {
         List<dynamic> picNames = data.data()!['files'];
         for (Map<String, dynamic> map in picNames) {
-          if (normString(nameController.text) == normString(map.values.first['name'])) {
+          if (normString(nameController.text) ==
+              normString(map.values.first['name'])) {
+            Navigator.of(context).pop();
             await showCupertinoDialog(
                 barrierDismissible: true,
                 context: context,
@@ -239,6 +267,7 @@ class _AddPictureState extends State<AddPicture> {
           .child(picture.getLink())
           .getDownloadURL()
           .then((value) async {
+        Navigator.of(context).pop();
         await showCupertinoDialog(
             barrierDismissible: true,
             context: context,
@@ -273,7 +302,6 @@ class _AddPictureState extends State<AddPicture> {
           picture.filename = (nextID).toString();
         }
 
-
         FirebaseStorage.instance
             .ref()
             .child(picture.getLink())
@@ -294,7 +322,7 @@ class _AddPictureState extends State<AddPicture> {
               .collection('global')
               .doc('lastID')
               .set({'id': nextID}).then((value) => writeBatch.commit());
-
+          Navigator.of(context).pop();
           await showCupertinoDialog(
               barrierDismissible: true,
               context: context,
@@ -322,11 +350,9 @@ class _AddPictureState extends State<AddPicture> {
             attributes = {};
           });
         }).onError((error, stackTrace) async {
-          await FirebaseCrashlytics.instance.recordError(
-              error,
-              stackTrace,
-              reason: 'Namen der Dateien abrufen fehlgeschlagen'
-          );
+          await FirebaseCrashlytics.instance.recordError(error, stackTrace,
+              reason: 'Namen der Dateien abrufen fehlgeschlagen');
+          Navigator.of(context).pop();
           await showCupertinoDialog(
               barrierDismissible: true,
               context: context,
@@ -348,6 +374,21 @@ class _AddPictureState extends State<AddPicture> {
               });
         });
       });
+    } else {
+      showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoAlertDialog(
+              title: Text("Du hast was vergessen"),
+              content: picture == null ? Text("Es wurde kein Bild ausgewählt") : Text("Es wurde noch keine Kategorie ausgewählt"),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  child: const Text("OK"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            );
+          });
     }
   }
 
@@ -367,6 +408,8 @@ class _AddPictureState extends State<AddPicture> {
   Future<XFile?> _imgFromGallery() async {
     final imageFile = await picker.pickImage(
         source: ImageSource.gallery, maxHeight: size, maxWidth: size);
+
+    print("File: $imageFile");
     return imageFile;
   }
 
@@ -397,11 +440,16 @@ class _AddPictureState extends State<AddPicture> {
 
   Widget _buildBottomPicker(Widget picker) {
     return Container(
+      color: context.watch<App>().brightness == Brightness.dark
+          ? CupertinoColors.black
+          : CupertinoColors.white,
       height: MediaQuery.of(context).size.height / 3,
       child: Column(
         children: <Widget>[
           Container(
-            color: context.watch<App>().brightness == Brightness.dark ? Color.fromRGBO(27, 27, 27, 1.0) : null,
+            color: context.watch<App>().brightness == Brightness.dark
+                ? Color.fromRGBO(27, 27, 27, 1.0)
+                : null,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -435,5 +483,12 @@ class _AddPictureState extends State<AddPicture> {
       ),
     );
   }
-  String normString(String toNorm) => toNorm.trim().toLowerCase().replaceAll(" ", "").replaceAll("\n", "").replaceAll("_", "").replaceAll("-", "");
+
+  String normString(String toNorm) => toNorm
+      .trim()
+      .toLowerCase()
+      .replaceAll(" ", "")
+      .replaceAll("\n", "")
+      .replaceAll("_", "")
+      .replaceAll("-", "");
 }

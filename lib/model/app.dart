@@ -2,12 +2,10 @@ import 'package:flutter/cupertino.dart';
 
 class App extends ChangeNotifier {
 
-  Brightness _brightness = Brightness.dark;
+  Brightness brightness = Brightness.light;
 
   void setBrightness(Brightness brightness) {
-    _brightness = brightness;
+    brightness = brightness;
     notifyListeners();
   }
-
-  Brightness get brightness => _brightness;
 }
